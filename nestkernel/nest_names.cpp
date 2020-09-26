@@ -562,6 +562,7 @@ const Name Delta_plus("Delta_plus");
 const Name Delta_minus("Delta_minus");
 const Name It( "It" );
 const Name hs( "hs" );
+const Name Pmax( "Pmax" );
 const Name weight_per_lut_entry( "weight_per_lut_entry" );
 const Name weight_recorder( "weight_recorder" );
 const Name weighted_spikes_ex( "weighted_spikes_ex" );

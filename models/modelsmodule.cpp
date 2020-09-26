@@ -131,6 +131,7 @@
 #include "static_connection.h"
 #include "static_connection_hom_w.h"
 #include "stdp_connection.h"
+#include "stdsp_connection.h"
 #include "stdp_connection_facetshw_hom.h"
 #include "stdp_connection_facetshw_hom_impl.h"
 #include "stdp_connection_hom.h"

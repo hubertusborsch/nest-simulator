@@ -849,6 +849,11 @@ public:
    */
   virtual index get_local_device_id() const;
 
+   /**
+   * get dendritic firing rate, necessary for the stdsp_connection 
+   */ 
+  virtual double get_dendritic_firing_rate();
+
   /**
    * Member of DeprecationWarning class to be used by models if parameters are
    * deprecated.
@@ -868,11 +873,6 @@ private:
    * get_status_dict_().
    */
   virtual DictionaryDatum get_status_dict_();
-
-   /**
-   * get dendritic firing rate, necessary for the stdsp_connection 
-   */ 
-  virtual double get_dendritic_firing_rate();
 
 protected:
   /**

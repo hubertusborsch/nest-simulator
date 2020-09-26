@@ -42,12 +42,11 @@ namespace nest
 //
 
 /** @BeginDocumentation
-Name: stdp_synapse - Synapse type for spike-timing dependent
-plasticity.
+Name: stdsp_synapse - Synapse type for spike-timing dependent structural plasticity.
 
 Description:
 
-stdp_synapse is a connector to create synapses with spike timedependent plasticity (as defined in [1]). Here the weight dependence
+stdsp_synapse is a connector to create synapses with spike timedependent structural plasticity (as defined in [ref]). Here the weight dependence
 exponent can be set separately for potentiation and depression.
 
 Examples:
@@ -167,7 +166,7 @@ public:
 
     ConnectionBase::check_connection_( dummy_target, s, t, receptor_type );
 
-    t.register_stdp_connection( t_lastspike_ - get_delay() );
+    t.register_stdp_connection( t_lastspike_ - get_delay(), get_delay());
   }
 
   void
@@ -248,7 +247,7 @@ private:
  * Send an event to the receiver of this connection.
  * \param e The event to send
  * \param t The thread on which this connection is stored.
- * \param cp Common properties object, containing the stdp parameters.
+ * \param cp Common properties object, containing the stdsp parameters.
  */
 template < typename targetidentifierT >
 inline void
@@ -274,7 +273,7 @@ STDSPConnection< targetidentifierT >::send( Event& e,
   // which increases the access counter for these entries.
   // At registration, all entries' access counters of
   // history[0, ..., t_last_spike - dendritic_delay] have been
-  // incremented by Archiving_Node::register_stdp_connection(). See bug #218 for
+  // incremented by Archiving_Node::register_stdsp_connection(). See bug #218 for
   // details.
   target->get_history( t_lastspike_ - dendritic_delay,
     t_spike - dendritic_delay,

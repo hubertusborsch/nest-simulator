@@ -581,6 +581,7 @@ extern const Name Delta_plus;
 extern const Name Delta_minus;
 extern const Name hs;
 extern const Name It;
+extern const Name Pmax;
 
 extern const Name weight_per_lut_entry;
 extern const Name weight_recorder;
