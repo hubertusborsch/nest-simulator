@@ -869,6 +869,11 @@ private:
    */
   virtual DictionaryDatum get_status_dict_();
 
+   /**
+   * get dendritic firing rate, necessary for the stdsp_connection 
+   */ 
+  virtual double get_dendritic_firing_rate();
+
 protected:
   /**
    * Private function to initialize the state of a node to model defaults.

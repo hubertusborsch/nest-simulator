@@ -493,6 +493,12 @@ nest::Node::get_tau_syn_in( int )
   throw UnexpectedEvent();
 }
 
+double 
+Node::get_dendritic_firing_rate()
+{
+  throw UnexpectedEvent();
+}  
+
 void
 Node::event_hook( DSSpikeEvent& e )
 {

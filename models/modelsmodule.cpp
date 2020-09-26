@@ -315,6 +315,7 @@ ModelsModule::init( SLIInterpreter* )
   register_connection_model< StaticConnection >( "static_synapse" );
   register_connection_model< StaticConnectionHomW >( "static_synapse_hom_w" );
   register_connection_model< STDPConnection >( "stdp_synapse" );
+  register_connection_model< STDSPConnection >( "stdsp_synapse" );
   register_connection_model< STDPConnectionHom >( "stdp_synapse_hom" );
   register_connection_model< STDPDopaConnection >( "stdp_dopamine_synapse" );
   register_connection_model< STDPFACETSHWConnectionHom >( "stdp_facetshw_synapse_hom" );
