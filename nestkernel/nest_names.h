@@ -573,6 +573,15 @@ extern const Name vt;
 
 extern const Name w;
 extern const Name weight;
+extern const Name permanence;
+extern const Name t_mean;
+extern const Name t_var;
+extern const Name th_perm;
+extern const Name Delta_plus;
+extern const Name Delta_minus;
+extern const Name hs;
+extern const Name It;
+
 extern const Name weight_per_lut_entry;
 extern const Name weight_recorder;
 extern const Name weighted_spikes_ex;
