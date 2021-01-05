@@ -239,7 +239,7 @@ private:
   double t_lastspike_;
   double It_;
   double max_dt_ = -100.;
-  double min_dt_ = -3.;
+  double min_dt_ = -4.;
 };
 
 
