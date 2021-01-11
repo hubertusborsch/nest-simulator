@@ -39,23 +39,23 @@
 namespace nest
 {
 //TODO: change documentation of stdp to stdsp ("spike-timing dependent structural plasticity")
-//
 
 /** @BeginDocumentation
 Name: stdsp_synapse - Synapse type for spike-timing dependent structural plasticity.
 
 Description:
 
-stdsp_synapse is a connector to create synapses with spike timedependent structural plasticity (as defined in [ref]). Here the weight dependence
-exponent can be set separately for potentiation and depression.
+stdsp_synapse is a connector to create synapses with spike-timing-dependent structural plasticity (as defined in [ref]).
 
 Examples:
 
+//TODO: change the following with exmples from stdsp
 multiplicative STDP [2]  mu_plus = mu_minus = 1.0
 additive STDP       [3]  mu_plus = mu_minus = 0.0
 Guetig STDP         [1]  mu_plus = mu_minus = [0.0,1.0]
 van Rossum STDP     [4]  mu_plus = 0.0 mu_minus = 1.0
 
+//TODO: change the following with stdsp parameters
 Parameters:
 
 tau_plus   double - Time constant of STDP window, potentiation in ms
@@ -70,6 +70,8 @@ Wmax       double - Maximum allowed weight
 Transmits: SpikeEvent
 
 References:
+
+\\TODO add stdsp references
 
 [1] Guetig et al. (2003) Learning Input Correlations through Nonlinear
     Temporally Asymmetric Hebbian Plasticity. Journal of Neuroscience
@@ -90,7 +92,7 @@ FirstVersion: March 2006
 
 Author: Moritz Helias, Abigail Morrison
 
-Adapted by: Philipp Weidel
+Adapted by: Younes Bouhadjar
 
 SeeAlso: synapsedict, tsodyks_synapse, static_synapse
 */
