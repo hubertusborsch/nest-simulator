@@ -205,7 +205,7 @@ private:
   {
     //printf("# Depress #");
     perm = perm - Delta_minus_;
-    return perm > 0 ? perm : 0.0;
+    return perm > init_perm_ ? perm : init_perm_;
   }
   // not used 
   double
@@ -242,6 +242,7 @@ private:
   double It_;
   double max_dt_ = -100.;
   double min_dt_ = -4.;
+  double init_perm_ = permanence_;
 };
 
 
@@ -316,6 +317,7 @@ STDSPConnection< targetidentifierT >::send( Event& e,
   if ( permanence_ > th_perm_ )
   {
     weight_ = Wmax_;
+    //permanence_ = depress_( permanence_ );
   }  
   else
   {
