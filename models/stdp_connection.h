@@ -39,67 +39,63 @@
 namespace nest
 {
 
-/* BeginUserDocs: synapse, spike-timing-dependent plasticity
+/** @BeginDocumentation
+Name: stdp_synapse - Synapse type for spike-timing dependent
+plasticity.
 
-Short description
-+++++++++++++++++
-
-Synapse type for spike-timing dependent plastiicty
-
-Description
-+++++++++++
+Description:
 
 stdp_synapse is a connector to create synapses with spike time
-dependent plasticity (as defined in [1]_). Here the weight dependence
+dependent plasticity (as defined in [1]). Here the weight dependence
 exponent can be set separately for potentiation and depression.
 
-Parameters
-++++++++++
+Examples:
 
-========= =======  ======================================================
- tau_plus  ms      Time constant of STDP window, potentiation
-                   (tau_minus defined in post-synaptic neuron)
- lambda    real    Step size
- alpha     real    Asymmetry parameter (scales depressing increments as
-                   alpha*lambda)
- mu_plus   real    Weight dependence exponent, potentiation
- mu_minus  real    Weight dependence exponent, depression
- Wmax      real    Maximum allowed weight
-========= =======  ======================================================
+multiplicative STDP [2]  mu_plus = mu_minus = 1.0
+additive STDP       [3]  mu_plus = mu_minus = 0.0
+Guetig STDP         [1]  mu_plus = mu_minus = [0.0,1.0]
+van Rossum STDP     [4]  mu_plus = 0.0 mu_minus = 1.0
 
-Transmits
-+++++++++
+Parameters:
 
-SpikeEvent
+tau_plus   double - Time constant of STDP window, potentiation in ms
+                    (tau_minus defined in post-synaptic neuron)
+lambda     double - Step size
+alpha      double - Asymmetry parameter (scales depressing increments as
+                    alpha*lambda)
+mu_plus    double - Weight dependence exponent, potentiation
+mu_minus   double - Weight dependence exponent, depression
+Wmax       double - Maximum allowed weight
 
-References
-++++++++++
+Transmits: SpikeEvent
 
-.. [1] Guetig et al. (2003). Learning input correlations through nonlinear
-       temporally asymmetric hebbian plasticity. Journal of Neuroscience,
-       23:3697-3714 DOI: https://doi.org/10.1523/JNEUROSCI.23-09-03697.2003
-.. [2] Rubin J, Lee D, Sompolinsky H (2001). Equilibrium
-       properties of temporally asymmetric Hebbian plasticity. Physical Review
-       Letters, 86:364-367. DOI: https://doi.org/10.1103/PhysRevLett.86.364
-.. [3] Song S, Miller KD, Abbott LF (2000). Competitive Hebbian learning
-       through spike-timing-dependent synaptic plasticity. Nature Neuroscience
-       3(9):919-926.
-       DOI: https://doi.org/10.1038/78829
-.. [4] van Rossum MCW, Bi G-Q, Turrigiano GG (2000). Stable Hebbian learning
-       from spike timing-dependent plasticity. Journal of Neuroscience,
-       20(23):8812-8821.
-       DOI: https://doi.org/10.1523/JNEUROSCI.20-23-08812.2000
+References:
 
-See also
-++++++++
+[1] Guetig et al. (2003) Learning Input Correlations through Nonlinear
+    Temporally Asymmetric Hebbian Plasticity. Journal of Neuroscience
 
-tsodyks_synapse, static_synapse
+[2] Rubin, J., Lee, D. and Sompolinsky, H. (2001). Equilibrium
+    properties of temporally asymmetric Hebbian plasticity, PRL
+    86,364-367
 
-EndUserDocs */
+[3] Song, S., Miller, K. D. and Abbott, L. F. (2000). Competitive
+    Hebbian learning through spike-timing-dependent synaptic
+    plasticity,Nature Neuroscience 3:9,919--926
 
+[4] van Rossum, M. C. W., Bi, G-Q and Turrigiano, G. G. (2000).
+    Stable Hebbian learning from spike timing-dependent
+    plasticity, Journal of Neuroscience, 20:23,8812--8821
+
+FirstVersion: March 2006
+
+Author: Moritz Helias, Abigail Morrison
+
+Adapted by: Philipp Weidel
+
+SeeAlso: synapsedict, tsodyks_synapse, static_synapse
+*/
 // connections are templates of target identifier type (used for pointer /
 // target index addressing) derived from generic connection template
-
 template < typename targetidentifierT >
 class STDPConnection : public Connection< targetidentifierT >
 {
@@ -162,13 +158,17 @@ public:
   };
 
   void
-  check_connection( Node& s, Node& t, rport receptor_type, const CommonPropertiesType& )
+  check_connection( Node& s,
+    Node& t,
+    rport receptor_type,
+    const CommonPropertiesType& )
   {
     ConnTestDummyNode dummy_target;
 
     ConnectionBase::check_connection_( dummy_target, s, t, receptor_type );
 
     t.register_stdp_connection( t_lastspike_ - get_delay(), get_delay() );
+  
   }
 
   void
@@ -179,17 +179,34 @@ public:
 
 private:
   double
-  facilitate_( double w, double kplus )
+  facilitate_exp_( double w, double kplus )
   {
-    double norm_w = ( w / Wmax_ ) + ( lambda_ * std::pow( 1.0 - ( w / Wmax_ ), mu_plus_ ) * kplus );
+    double norm_w = ( w / Wmax_ ) + ( lambda_ * std::pow( 1.0 - ( w / Wmax_ ), mu_plus_ ) * kplus);
     return norm_w < 1.0 ? norm_w * Wmax_ : Wmax_;
   }
 
   double
-  depress_( double w, double kminus )
+  facilitate_( double w_old, double kplus)
   {
-    double norm_w = ( w / Wmax_ ) - ( alpha_ * lambda_ * std::pow( w / Wmax_, mu_minus_ ) * kminus );
+    double w =  w_old + ( lambda_ * kplus * Wmax_);    
+
+    return w < Wmax_ ? w : Wmax_;
+  }
+
+  double
+  depress_exp_( double w, double kminus )
+  {
+      double norm_w = ( w / Wmax_ )
+      - ( alpha_ * lambda_ * std::pow( w / Wmax_, mu_minus_ ) * kminus );
     return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
+  }
+
+  double
+  depress_( double w )
+  {
+    //printf("# Depress #");
+    w = w - alpha_ * lambda_;
+    return w > init_weight_ ? w : init_weight_;
   }
 
   // data members of each connection
@@ -201,8 +218,11 @@ private:
   double mu_minus_;
   double Wmax_;
   double Kplus_;
+  double It_;
+  double hs_;
 
   double t_lastspike_;
+  double init_weight_ = weight_;
 };
 
 
@@ -214,15 +234,20 @@ private:
  */
 template < typename targetidentifierT >
 inline void
-STDPConnection< targetidentifierT >::send( Event& e, thread t, const CommonSynapseProperties& )
+STDPConnection< targetidentifierT >::send( Event& e,
+  thread t,
+  const CommonSynapseProperties& )
 {
   // synapse STDP depressing/facilitation dynamics
-  const double t_spike = e.get_stamp().get_ms();
+  double t_spike = e.get_stamp().get_ms();
 
   // use accessor functions (inherited from Connection< >) to obtain delay and
   // target
   Node* target = get_target( t );
   double dendritic_delay = get_delay();
+
+  //bool reach_max_activity = target->get_reach_max_activity();
+  double Ic = target->get_dendritic_firing_rate();
 
   // get spike history in relevant range (t1, t2] from post-synaptic neuron
   std::deque< histentry >::iterator start;
@@ -236,9 +261,13 @@ STDPConnection< targetidentifierT >::send( Event& e, thread t, const CommonSynap
   // history[0, ..., t_last_spike - dendritic_delay] have been
   // incremented by Archiving_Node::register_stdp_connection(). See bug #218 for
   // details.
-  target->get_history( t_lastspike_ - dendritic_delay, t_spike - dendritic_delay, &start, &finish );
+  target->get_history( t_lastspike_ - dendritic_delay,
+    t_spike - dendritic_delay,
+    &start,
+    &finish );
   // facilitation due to post-synaptic spikes since last pre-synaptic spike
   double minus_dt;
+
   while ( start != finish )
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
@@ -246,13 +275,22 @@ STDPConnection< targetidentifierT >::send( Event& e, thread t, const CommonSynap
     // get_history() should make sure that
     // start->t_ > t_lastspike - dendritic_delay, i.e. minus_dt < 0
     assert( minus_dt < -1.0 * kernel().connection_manager.get_stdp_eps() );
-    weight_ = facilitate_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ) );
+    if ( minus_dt > -50. and minus_dt < (-1.0 * dendritic_delay - 2.0) ){
+    
+        // Hebbian learning 
+        weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
+
+        // homoestasis control
+        weight_ += hs_ * (It_ - Ic); 
+    }
   }
 
-  const double _K_value = target->get_K_value( t_spike - dendritic_delay );
-  weight_ = depress_( weight_, _K_value );
+  // depress 
+  //const double _K_value = target->get_K_value( t_spike - dendritic_delay );
+  //weight_ = depress_exp_( weight_, _K_value );
+  weight_ = depress_( weight_ ); 
 
-  e.set_receiver( *target );
+  e.set_receiver( *target ); 
   e.set_weight( weight_ );
   // use accessor functions (inherited from Connection< >) to obtain delay in
   // steps and rport
@@ -273,7 +311,9 @@ STDPConnection< targetidentifierT >::STDPConnection()
   , tau_plus_( 20.0 )
   , lambda_( 0.01 )
   , alpha_( 1.0 )
-  , mu_plus_( 1.0 )
+  , It_( 1.0 )
+  , hs_( 0.01 )
+  , mu_plus_( 0.005 )
   , mu_minus_( 1.0 )
   , Wmax_( 100.0 )
   , Kplus_( 0.0 )
@@ -282,12 +322,15 @@ STDPConnection< targetidentifierT >::STDPConnection()
 }
 
 template < typename targetidentifierT >
-STDPConnection< targetidentifierT >::STDPConnection( const STDPConnection< targetidentifierT >& rhs )
+STDPConnection< targetidentifierT >::STDPConnection(
+  const STDPConnection< targetidentifierT >& rhs )
   : ConnectionBase( rhs )
   , weight_( rhs.weight_ )
   , tau_plus_( rhs.tau_plus_ )
   , lambda_( rhs.lambda_ )
   , alpha_( rhs.alpha_ )
+  , It_( rhs.It_ )
+  , hs_( rhs.hs_ )
   , mu_plus_( rhs.mu_plus_ )
   , mu_minus_( rhs.mu_minus_ )
   , Wmax_( rhs.Wmax_ )
@@ -305,6 +348,8 @@ STDPConnection< targetidentifierT >::get_status( DictionaryDatum& d ) const
   def< double >( d, names::tau_plus, tau_plus_ );
   def< double >( d, names::lambda, lambda_ );
   def< double >( d, names::alpha, alpha_ );
+  def< double >( d, names::It, It_ );
+  def< double >( d, names::hs, hs_ );
   def< double >( d, names::mu_plus, mu_plus_ );
   def< double >( d, names::mu_minus, mu_minus_ );
   def< double >( d, names::Wmax, Wmax_ );
@@ -313,19 +358,23 @@ STDPConnection< targetidentifierT >::get_status( DictionaryDatum& d ) const
 
 template < typename targetidentifierT >
 void
-STDPConnection< targetidentifierT >::set_status( const DictionaryDatum& d, ConnectorModel& cm )
+STDPConnection< targetidentifierT >::set_status( const DictionaryDatum& d,
+  ConnectorModel& cm )
 {
   ConnectionBase::set_status( d, cm );
   updateValue< double >( d, names::weight, weight_ );
   updateValue< double >( d, names::tau_plus, tau_plus_ );
   updateValue< double >( d, names::lambda, lambda_ );
   updateValue< double >( d, names::alpha, alpha_ );
+  updateValue< double >( d, names::It, It_ );
+  updateValue< double >( d, names::hs, hs_ );
   updateValue< double >( d, names::mu_plus, mu_plus_ );
   updateValue< double >( d, names::mu_minus, mu_minus_ );
   updateValue< double >( d, names::Wmax, Wmax_ );
 
   // check if weight_ and Wmax_ has the same sign
-  if ( not( ( ( weight_ >= 0 ) - ( weight_ < 0 ) ) == ( ( Wmax_ >= 0 ) - ( Wmax_ < 0 ) ) ) )
+  if ( not( ( ( weight_ >= 0 ) - ( weight_ < 0 ) )
+         == ( ( Wmax_ >= 0 ) - ( Wmax_ < 0 ) ) ) )
   {
     throw BadProperty( "Weight and Wmax must have same sign." );
   }
@@ -334,3 +383,4 @@ STDPConnection< targetidentifierT >::set_status( const DictionaryDatum& d, Conne
 } // of namespace nest
 
 #endif // of #ifndef STDP_CONNECTION_H
+
