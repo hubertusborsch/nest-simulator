@@ -43,7 +43,13 @@ namespace nest
 Name: stdp_synapse - Synapse type for spike-timing dependent
 plasticity.
 
-Description:
+Short description
++++++++++++++++++
+
+Synapse type for spike-timing dependent plasticity
+
+Description
++++++++++++
 
 stdp_synapse is a connector to create synapses with spike time
 dependent plasticity (as defined in [1]). Here the weight dependence
@@ -73,29 +79,54 @@ References:
 
 [1] Guetig et al. (2003) Learning Input Correlations through Nonlinear
     Temporally Asymmetric Hebbian Plasticity. Journal of Neuroscience
+=======
+Parameters
+++++++++++
 
-[2] Rubin, J., Lee, D. and Sompolinsky, H. (2001). Equilibrium
-    properties of temporally asymmetric Hebbian plasticity, PRL
-    86,364-367
+========= =======  ======================================================
+ tau_plus  ms      Time constant of STDP window, potentiation
+                   (tau_minus defined in postsynaptic neuron)
+ lambda    real    Step size
+ alpha     real    Asymmetry parameter (scales depressing increments as
+                   alpha*lambda)
+ mu_plus   real    Weight dependence exponent, potentiation
+ mu_minus  real    Weight dependence exponent, depression
+ Wmax      real    Maximum allowed weight
+========= =======  ======================================================
 
-[3] Song, S., Miller, K. D. and Abbott, L. F. (2000). Competitive
-    Hebbian learning through spike-timing-dependent synaptic
-    plasticity,Nature Neuroscience 3:9,919--926
+Transmits
++++++++++
 
-[4] van Rossum, M. C. W., Bi, G-Q and Turrigiano, G. G. (2000).
-    Stable Hebbian learning from spike timing-dependent
-    plasticity, Journal of Neuroscience, 20:23,8812--8821
+SpikeEvent
 
-FirstVersion: March 2006
+References
+++++++++++
 
-Author: Moritz Helias, Abigail Morrison
+.. [1] Guetig et al. (2003). Learning input correlations through nonlinear
+       temporally asymmetric hebbian plasticity. Journal of Neuroscience,
+       23:3697-3714 DOI: https://doi.org/10.1523/JNEUROSCI.23-09-03697.2003
+.. [2] Rubin J, Lee D, Sompolinsky H (2001). Equilibrium
+       properties of temporally asymmetric Hebbian plasticity. Physical Review
+       Letters, 86:364-367. DOI: https://doi.org/10.1103/PhysRevLett.86.364
+.. [3] Song S, Miller KD, Abbott LF (2000). Competitive Hebbian learning
+       through spike-timing-dependent synaptic plasticity. Nature Neuroscience
+       3(9):919-926.
+       DOI: https://doi.org/10.1038/78829
+.. [4] van Rossum MCW, Bi G-Q, Turrigiano GG (2000). Stable Hebbian learning
+       from spike timing-dependent plasticity. Journal of Neuroscience,
+       20(23):8812-8821.
+       DOI: https://doi.org/10.1523/JNEUROSCI.20-23-08812.2000
 
-Adapted by: Philipp Weidel
+See also
+++++++++
 
-SeeAlso: synapsedict, tsodyks_synapse, static_synapse
-*/
+tsodyks_synapse, static_synapse
+
+EndUserDocs */
+
 // connections are templates of target identifier type (used for pointer /
 // target index addressing) derived from generic connection template
+
 template < typename targetidentifierT >
 class STDPConnection : public Connection< targetidentifierT >
 {
@@ -115,7 +146,7 @@ public:
    * Copy constructor.
    * Needs to be defined properly in order for GenericConnector to work.
    */
-  STDPConnection( const STDPConnection& );
+  STDPConnection( const STDPConnection& ) = default;
 
   // Explicitly declare all methods inherited from the dependent base
   // ConnectionBase. This avoids explicit name prefixes in all places these
@@ -259,7 +290,7 @@ STDPConnection< targetidentifierT >::send( Event& e,
   // which increases the access counter for these entries.
   // At registration, all entries' access counters of
   // history[0, ..., t_last_spike - dendritic_delay] have been
-  // incremented by Archiving_Node::register_stdp_connection(). See bug #218 for
+  // incremented by ArchivingNode::register_stdp_connection(). See bug #218 for
   // details.
   target->get_history( t_lastspike_ - dendritic_delay,
     t_spike - dendritic_delay,
@@ -318,24 +349,6 @@ STDPConnection< targetidentifierT >::STDPConnection()
   , Wmax_( 100.0 )
   , Kplus_( 0.0 )
   , t_lastspike_( 0.0 )
-{
-}
-
-template < typename targetidentifierT >
-STDPConnection< targetidentifierT >::STDPConnection(
-  const STDPConnection< targetidentifierT >& rhs )
-  : ConnectionBase( rhs )
-  , weight_( rhs.weight_ )
-  , tau_plus_( rhs.tau_plus_ )
-  , lambda_( rhs.lambda_ )
-  , alpha_( rhs.alpha_ )
-  , It_( rhs.It_ )
-  , hs_( rhs.hs_ )
-  , mu_plus_( rhs.mu_plus_ )
-  , mu_minus_( rhs.mu_minus_ )
-  , Wmax_( rhs.Wmax_ )
-  , Kplus_( rhs.Kplus_ )
-  , t_lastspike_( rhs.t_lastspike_ )
 {
 }
 
