@@ -215,7 +215,6 @@ public:
   void set_status( const DictionaryDatum& );
 
 private:
-  void init_state_( const Node& proto );
   void init_buffers_();
   void calibrate();
   void update( const Time&, const long, const long );
@@ -251,7 +250,6 @@ private:
     double a;          //!< Subthreshold adaptation in nS
     double b;          //!< Spike-triggered adaptation in pA
     double V_th;       //!< Spike threshold in mV
-    double t_ref;      //!< Refractory period in ms
     double tau_syn_ex; //!< Excitatory synaptic kernel decay time in ms
     double tau_syn_in; //!< Inhibitory synaptic kernel decay time in ms
     double I_e;        //!< Intrinsic current in pA
@@ -269,8 +267,7 @@ public:
 
   /**
    * State variables of the model.
-   * @note Copy constructor and assignment operator required because
-   *       of C-style array.
+   * @note Copy constructor required because of C-style array.
    */
   struct State_
   {
@@ -295,6 +292,7 @@ public:
 
     State_( const Parameters_& ); //!< Default initialization
     State_( const State_& );
+
     State_& operator=( const State_& );
 
     void get( DictionaryDatum& ) const;

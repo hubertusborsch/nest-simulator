@@ -1,6 +1,7 @@
 
 __pycache__/
 build/
+_build/
 install/
 reports/
 
@@ -8,10 +9,19 @@ reports/
 pynest/pynestkernel.cxx
 *.la
 *.lo
+*.so
 *.log
 *.o
 *.pyc
-*.so
+
+Makefile
+
+build/
+install/
+examples/example_logs/
+
+/extras/nest-config
+/libnestutil/config.h
 /librandom/randomtest
 /nest/nest
 /sli/sli
@@ -44,8 +54,15 @@ doc/doctrees/
 doc/html/
 doc/models/
 doc/pynestkernel_mock.py
+
+# created when running examples, e.g. by examples/run_examples.py
 examples/microcircuit.png
 examples/reference_data/
+/examples/matplotlib/fontList.json
+/examples/matplotlib/tex.cache/
+
+# macOS
+.DS_Store
 
 # IDEs / editors / Jupyter
 *.kdev4
@@ -53,4 +70,9 @@ examples/reference_data/
 TAGS
 tags
 cscope.out
-.vscode/*
+.vscode/
+.idea/
+.settings/
+.project
+.cproject
+.pydevproject

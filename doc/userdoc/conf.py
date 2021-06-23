@@ -39,10 +39,11 @@ if source_dir:
 else:
     source_dir = Path(__file__).resolve().parent.parent.parent.resolve()
 
-doc_build_dir = Path(os.environ['OLDPWD']) / 'doc/userdoc'
 
-if os.environ.get('READTHEDOCS', 'False') == 'True':
-    doc_build_dir = source_dir / 'doc/userdoc'
+if os.environ.get("READTHEDOCS") == "True":
+    doc_build_dir = source_dir / "doc/userdoc"
+else:
+    doc_build_dir = Path(os.environ["OLDPWD"]) / "doc/userdoc"
 
 print("doc_build_dir", str(doc_build_dir))
 print("source_dir", str(source_dir))
@@ -87,7 +88,8 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx_tabs.tabs'
+    'sphinx_tabs.tabs',
+    'nbsphinx'
 ]
 
 mathjax_path = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS-MML_HTMLorMML"  # noqa
@@ -270,6 +272,13 @@ texinfo_documents = [
 def copy_example_file(src):
     copyfile(src, doc_build_dir / "examples" / src.parts[-1])
 
+
+def copy_acknowledgments_file(src):
+    copyfile(src, doc_build_dir / src.parts[-1])
+
+
+# -- Copy Acknowledgments file ----------------------------
+copy_acknowledgments_file(source_dir / "ACKNOWLEDGMENTS.md")
 
 # -- Copy documentation for Microcircuit Model ----------------------------
 copy_example_file(source_dir / "pynest/examples/Potjans_2014/box_plot.png")
