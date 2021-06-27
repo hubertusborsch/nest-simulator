@@ -253,7 +253,7 @@ private:
   double hs_;
 
   double t_lastspike_;
-  double max_dt_ = -100.;
+  double max_dt_ = -50.;
   double min_dt_ = -4.;
   double init_weight_ = weight_;
 };
