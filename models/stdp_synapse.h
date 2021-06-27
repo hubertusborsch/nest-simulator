@@ -253,6 +253,8 @@ private:
   double hs_;
 
   double t_lastspike_;
+  double max_dt_ = -100.;
+  double min_dt_ = -4.;
   double init_weight_ = weight_;
 };
 
@@ -304,7 +306,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
     // get_history() should make sure that
     // start->t_ > t_lastspike - dendritic_delay, i.e. minus_dt < 0
     assert( minus_dt < -1.0 * kernel().connection_manager.get_stdp_eps() );
-    if ( minus_dt < (-1.0 * dendritic_delay - 2.0) ){
+    if ( minus_dt > max_dt_ and  minus_dt < min_dt_ ){
     
         // Hebbian learning 
         weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
