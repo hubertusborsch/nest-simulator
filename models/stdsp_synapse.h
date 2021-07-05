@@ -204,7 +204,7 @@ private:
   depress_( double perm )
   {
     //printf("# Depress #");
-    perm = perm - Delta_minus_;
+    perm = perm - alpha_ * Pmax_;
     return perm > init_perm_ ? perm : init_perm_;
   }
   // not used 
