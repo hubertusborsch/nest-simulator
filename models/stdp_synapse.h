@@ -312,7 +312,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
         weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
        
         // homoestasis control
-        weight_ += hs_ * (It_ - Ic); 
+        weight_ += hs_ * (It_ - Ic) * Wmax_; 
     }
 
   }
