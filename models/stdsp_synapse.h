@@ -60,9 +60,9 @@ Parameters:
 
 tau_plus   double - Time constant of STDP window, potentiation in ms
                     (tau_minus defined in post-synaptic neuron)
-lambda     double - Step size
-alpha      double - Asymmetry parameter (scales depressing increments as
-                    alpha*lambda)
+lambda_plus     double - Step size
+lambda_minus      double - Asymmetry parameter (scales depressing increments as
+                    lambda_minus*lambda_plus)
 mu_plus    double - Weight dependence exponent, potentiation
 mu_minus   double - Weight dependence exponent, depression
 Wmax       double - Maximum allowed weight
@@ -196,7 +196,7 @@ private:
   {
     double mu = 0; 
     double norm_perm = ( perm / Pmax_ )
-    + ( lambda_ * std::pow( 1.0 - ( perm / Pmax_ ), mu ) * kplus );
+    + ( lambda_plus_ * std::pow( 1.0 - ( perm / Pmax_ ), mu ) * kplus );
     return norm_perm < 1.0 ? norm_perm * Pmax_ : Pmax_;
   }
 
@@ -204,7 +204,7 @@ private:
   depress_( double perm )
   {
     //printf("# Depress #");
-    perm = perm - alpha_ * Pmax_;
+    perm = perm - lambda_minus_ * Pmax_;
     return perm > init_perm_ ? perm : init_perm_;
   }
   // not used 
@@ -212,7 +212,7 @@ private:
   depress_exp_( double perm, double kminus )
   {
     double norm_perm = ( perm / Pmax_ )
-      - ( alpha_ * lambda_ * std::pow( perm / Pmax_, mu_minus_ ) * kminus );
+      - ( lambda_minus_ * lambda_plus_ * std::pow( perm / Pmax_, mu_minus_ ) * kminus );
     return norm_perm > 0.0 ? norm_perm * Pmax_ : 0.0;
   }
 
@@ -222,8 +222,8 @@ private:
   double weight_;
   double permanence_;
   double tau_plus_;
-  double lambda_;
-  double alpha_;
+  double lambda_plus_;
+  double lambda_minus_;
   double mu_plus_;
   double mu_minus_;
   double Wmax_;
@@ -231,7 +231,7 @@ private:
   double Kplus_;
   double Delta_plus_;
   double Delta_minus_;
-  double hs_;
+  double lambda_h_;
 
   // remove t_mean_ and t_var_ 
   double t_mean_;
@@ -239,7 +239,7 @@ private:
 
   double th_perm_;
   double t_lastspike_;
-  double It_;
+  double zt_;
   double max_dt_ = -100.;
   double min_dt_ = -4.;
   double init_perm_ = permanence_;
@@ -289,7 +289,7 @@ stdsp_synapse< targetidentifierT >::send( Event& e,
   float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
   
   // get the dendritic firing rate
-  double Ic = target->get_dendritic_firing_rate();
+  double z = target->get_dendritic_firing_rate();
 
   while ( start != finish )
   {
@@ -306,7 +306,7 @@ stdsp_synapse< targetidentifierT >::send( Event& e,
           permanence_ = facilitate_exp_( permanence_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
           
           // homeostasis control
-          permanence_ += hs_* (It_ - Ic) * Pmax_; 
+          permanence_ += lambda_h_* (zt_ - z) * Pmax_; 
       }
    }
    
@@ -345,8 +345,8 @@ stdsp_synapse< targetidentifierT >::stdsp_synapse()
   , weight_( 0.1 )
   , permanence_(1.0)
   , tau_plus_( 80.0 )
-  , lambda_( 0.01 )
-  , alpha_( 1.0 )
+  , lambda_plus_( 0.01 )
+  , lambda_minus_( 1.0 )
   , mu_plus_( 1.0 )
   , mu_minus_( 1.0 )
   , Wmax_( 100.0 )
@@ -356,8 +356,8 @@ stdsp_synapse< targetidentifierT >::stdsp_synapse()
   , Delta_plus_( 0.1 ) 
   , Delta_minus_( 0.0 )
   , t_lastspike_( 0.0 )
-  , hs_( 1.0 )
-  , It_( 1.0 )
+  , lambda_h_( 1.0 )
+  , zt_( 1.0 )
   , t_mean_( 30.0 )
   , t_var_( 5.0 )
 {
@@ -372,14 +372,14 @@ stdsp_synapse< targetidentifierT >::get_status( DictionaryDatum& d ) const
   def< double >( d, names::permanence, permanence_);
   def< double >( d, names::th_perm, th_perm_);
   def< double >( d, names::tau_plus, tau_plus_ );
-  def< double >( d, names::lambda, lambda_ );
-  def< double >( d, names::alpha, alpha_ );
+  def< double >( d, names::lambda_plus, lambda_plus_ );
+  def< double >( d, names::lambda_minus, lambda_minus_ );
   def< double >( d, names::mu_plus, mu_plus_ );
   def< double >( d, names::mu_minus, mu_minus_ );
   def< double >( d, names::Wmax, Wmax_ ); 
   def< double >( d, names::Pmax, Pmax_ ); 
-  def< double >( d, names::hs, hs_ ); 
-  def< double >( d, names::It, It_ ); 
+  def< double >( d, names::lambda_h, lambda_h_ ); 
+  def< double >( d, names::zt, zt_ ); 
   def< double >( d, names::t_mean, t_mean_ ); 
   def< double >( d, names::t_var, t_var_ ); 
   def< double >( d, names::Delta_plus, Delta_plus_ );
@@ -397,14 +397,14 @@ stdsp_synapse< targetidentifierT >::set_status( const DictionaryDatum& d,
   updateValue< double >( d, names::permanence, permanence_ );
   updateValue< double >( d, names::th_perm, th_perm_ ); 
   updateValue< double >( d, names::tau_plus, tau_plus_ );
-  updateValue< double >( d, names::lambda, lambda_ );
-  updateValue< double >( d, names::alpha, alpha_ );
+  updateValue< double >( d, names::lambda_plus, lambda_plus_ );
+  updateValue< double >( d, names::lambda_minus, lambda_minus_ );
   updateValue< double >( d, names::mu_plus, mu_plus_ );
   updateValue< double >( d, names::mu_minus, mu_minus_ );
   updateValue< double >( d, names::Wmax, Wmax_ );
   updateValue< double >( d, names::Pmax, Pmax_ );
-  updateValue< double >( d, names::hs, hs_ );
-  updateValue< double >( d, names::It, It_ );
+  updateValue< double >( d, names::lambda_h, lambda_h_ );
+  updateValue< double >( d, names::zt, zt_ );
   updateValue< double >( d, names::Delta_plus, Delta_plus_ );
   updateValue< double >( d, names::Delta_minus, Delta_minus_ );
   updateValue< double >( d, names::t_mean, t_mean_ );

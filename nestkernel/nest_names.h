@@ -276,6 +276,8 @@ extern const Name kernel;
 
 extern const Name label;
 extern const Name lambda;
+extern const Name lambda_plus;
+extern const Name lambda_minus;
 extern const Name lambda_0;
 extern const Name len_kernel;
 extern const Name linear;
@@ -597,8 +599,8 @@ extern const Name t_var;
 extern const Name th_perm;
 extern const Name Delta_plus;
 extern const Name Delta_minus;
-extern const Name hs;
-extern const Name It;
+extern const Name lambda_h;
+extern const Name zt;
 extern const Name Pmax;
 
 extern const Name weight_per_lut_entry;
