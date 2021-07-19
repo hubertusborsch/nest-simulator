@@ -276,6 +276,8 @@ extern const Name kernel;
 
 extern const Name label;
 extern const Name lambda;
+extern const Name lambda_plus;
+extern const Name lambda_minus;
 extern const Name lambda_0;
 extern const Name len_kernel;
 extern const Name linear;
@@ -594,6 +596,16 @@ extern const Name vt;
 
 extern const Name w;
 extern const Name weight;
+extern const Name permanence;
+extern const Name t_mean;
+extern const Name t_var;
+extern const Name th_perm;
+extern const Name Delta_plus;
+extern const Name Delta_minus;
+extern const Name lambda_h;
+extern const Name zt;
+extern const Name Pmax;
+
 extern const Name weight_per_lut_entry;
 extern const Name weight_recorder;
 extern const Name weights;
