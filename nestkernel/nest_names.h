@@ -603,7 +603,9 @@ extern const Name th_perm;
 extern const Name Delta_plus;
 extern const Name Delta_minus;
 extern const Name lambda_h;
+extern const Name lambda_s;
 extern const Name zt;
+extern const Name st;
 extern const Name Pmax;
 
 extern const Name weight_per_lut_entry;

@@ -822,6 +822,11 @@ public:
    */ 
   virtual double get_dendritic_firing_rate();
 
+   /**
+   * get somatic firing rate, necessary for teh stdp_sonnection
+   */
+  virtual double get_somatic_firing_rate();
+
   /**
    * Member of DeprecationWarning class to be used by models if parameters are
    * deprecated.

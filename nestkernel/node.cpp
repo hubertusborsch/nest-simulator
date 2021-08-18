@@ -491,6 +491,12 @@ Node::get_dendritic_firing_rate()
   throw UnexpectedEvent();
 }  
 
+double
+Node::get_somatic_firing_rate()
+{
+  throw UnexpectedEvent();
+}
+
 void
 Node::event_hook( DSSpikeEvent& e )
 {

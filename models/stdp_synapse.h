@@ -250,11 +250,13 @@ private:
   double Wmax_;
   double Kplus_;
   double zt_;
+  double st_;
   double lambda_h_;
+  double lambda_s_;
 
   double t_lastspike_;
   double max_dt_ = -50.;
-  double min_dt_ = -4.;
+  double min_dt_ = 0.;
   double init_weight_ = weight_;
 };
 
@@ -279,6 +281,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
 
   //bool reach_max_activity = target->get_reach_max_activity();
   double z = target->get_dendritic_firing_rate();
+  double s = target->get_somatic_firing_rate();
 
   // get spike history in relevant range (t1, t2] from post-synaptic neuron
   std::deque< histentry >::iterator start;
@@ -311,8 +314,11 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
         // Hebbian learning 
         weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
        
-        // homoestasis control
+        // homeostasis control based on dAP firing rate
         weight_ += lambda_h_ * (zt_ - z) * Wmax_; 
+	
+	// homeostatis control based on somatic firing rate
+	weight_ += lambda_s_ * (st_ - s) * Wmax_;
     }
 
   }
@@ -344,7 +350,9 @@ stdp_synapse< targetidentifierT >::stdp_synapse()
   , lambda_plus_( 0.01 )
   , lambda_minus_( 1.0 )
   , zt_( 1.0 )
+  , st_( 1.0 )
   , lambda_h_( 0.01 )
+  , lambda_s_( 0.01 )
   , mu_plus_( 0.005 )
   , mu_minus_( 1.0 )
   , Wmax_( 100.0 )
@@ -363,7 +371,9 @@ stdp_synapse< targetidentifierT >::get_status( DictionaryDatum& d ) const
   def< double >( d, names::lambda_plus, lambda_plus_ );
   def< double >( d, names::lambda_minus, lambda_minus_ );
   def< double >( d, names::zt, zt_ );
+  def< double >( d, names::st, st_ );
   def< double >( d, names::lambda_h, lambda_h_ );
+  def< double >( d, names::lambda_s, lambda_s_ );
   def< double >( d, names::mu_plus, mu_plus_ );
   def< double >( d, names::mu_minus, mu_minus_ );
   def< double >( d, names::Wmax, Wmax_ );
@@ -380,7 +390,9 @@ stdp_synapse< targetidentifierT >::set_status( const DictionaryDatum& d, Connect
   updateValue< double >( d, names::lambda_plus, lambda_plus_ );
   updateValue< double >( d, names::lambda_minus, lambda_minus_ );
   updateValue< double >( d, names::zt, zt_ );
+  updateValue< double >( d, names::st, st_ );
   updateValue< double >( d, names::lambda_h, lambda_h_ );
+  updateValue< double >( d, names::lambda_s, lambda_s_ );
   updateValue< double >( d, names::mu_plus, mu_plus_ );
   updateValue< double >( d, names::mu_minus, mu_minus_ );
   updateValue< double >( d, names::Wmax, Wmax_ );
