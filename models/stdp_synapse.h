@@ -24,7 +24,7 @@
 #define STDP_SYNAPSE_H
 
 // C++ includes:
-#include <cmath>
+#include <cmath>?
 
 // Includes from nestkernel:
 #include "common_synapse_properties.h"
@@ -257,7 +257,7 @@ private:
   double t_lastspike_;
   double max_dt_ = -50.;
   double min_dt_ = 0.;
-  double init_weight_ = weight_;
+  double init_weight_ = 0.;
 };
 
 
@@ -301,7 +301,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
     &finish );
   // facilitation due to post-synaptic spikes since last pre-synaptic spike
   double minus_dt;
-
+  double s_post;
   while ( start != finish )
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
@@ -315,10 +315,15 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
         weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
        
         // homeostasis control based on dAP firing rate
-        weight_ += lambda_h_ * (zt_ - z) * Wmax_; 
-	
+        weight_ += lambda_h_ * (zt_ - z) * Wmax_;
+ 
+        // calculate trace at timepoint of postsynaptic firing (this is not really correct!)
+        // s_post = s * std::exp(( t_spike - start->t_ ) / 16.0 );
+        // if ( s_post >= st_ * 1.5){
+        //    s_post = st_;
+        // }
 	// homeostatis control based on somatic firing rate
-	weight_ += lambda_s_ * (st_ - s) * Wmax_;
+	weight_ += lambda_s_ * (st_ - s) * std::abs(st_ - s) * Wmax_;
     }
 
   }
