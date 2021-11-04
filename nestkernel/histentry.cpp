@@ -30,10 +30,12 @@
 
 #include "histentry.h"
 
-nest::histentry::histentry( double t, double Kminus, double Kminus_triplet, size_t access_counter )
+nest::histentry::histentry( double t, double Kminus, double Kminus_triplet, double dAP_trace, double spike_trace, size_t access_counter )
   : t_( t )
   , Kminus_( Kminus )
   , Kminus_triplet_( Kminus_triplet )
+  , dAP_trace_( dAP_trace )
+  , spike_trace_( spike_trace )
   , access_counter_( access_counter )
 {
 }

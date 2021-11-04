@@ -306,6 +306,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
     z = start->dAP_trace_ ; 
+    s = start->spike_trace_;
     ++start;
     // get_history() should make sure that
     // start->t_ > t_lastspike - dendritic_delay, i.e. minus_dt < 0

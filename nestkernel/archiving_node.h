@@ -152,12 +152,15 @@ protected:
   // read the spikehistory for a given point in time
   size_t n_incoming_;
 
-private:
+//private:
+public:
   // sum exp(-(t-ti)/tau_minus)
   double Kminus_;
 
   // sum exp(-(t-ti)/tau_minus_triplet)
   double Kminus_triplet_;
+  double dAP_trace_;
+  double spike_trace_;
 
   double tau_minus_;
   double tau_minus_inv_;

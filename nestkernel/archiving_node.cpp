@@ -37,6 +37,8 @@ nest::ArchivingNode::ArchivingNode()
   : n_incoming_( 0 )
   , Kminus_( 0.0 )
   , Kminus_triplet_( 0.0 )
+  , dAP_trace_( 0.0 )
+  , spike_trace_( 0.0 )
   , tau_minus_( 20.0 )
   , tau_minus_inv_( 1. / tau_minus_ )
   , tau_minus_triplet_( 110.0 )
@@ -52,6 +54,8 @@ nest::ArchivingNode::ArchivingNode( const ArchivingNode& n )
   , n_incoming_( n.n_incoming_ )
   , Kminus_( n.Kminus_ )
   , Kminus_triplet_( n.Kminus_triplet_ )
+  , dAP_trace_( n.dAP_trace_ )
+  , spike_trace_( n.spike_trace_ )
   , tau_minus_( n.tau_minus_ )
   , tau_minus_inv_( n.tau_minus_inv_ )
   , tau_minus_triplet_( n.tau_minus_triplet_ )
@@ -209,7 +213,7 @@ nest::ArchivingNode::set_spiketime( Time const& t_sp, double offset )
     Kminus_ = Kminus_ * std::exp( ( last_spike_ - t_sp_ms ) * tau_minus_inv_ ) + 1.0;
     Kminus_triplet_ = Kminus_triplet_ * std::exp( ( last_spike_ - t_sp_ms ) * tau_minus_triplet_inv_ ) + 1.0;
     last_spike_ = t_sp_ms;
-    history_.push_back( histentry( last_spike_, Kminus_, Kminus_triplet_, 0 ) );
+    history_.push_back( histentry( last_spike_, Kminus_, Kminus_triplet_, 0., 0., 0 ) );
   }
   else
   {
