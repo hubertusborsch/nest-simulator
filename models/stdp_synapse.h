@@ -24,7 +24,7 @@
 #define STDP_SYNAPSE_H
 
 // C++ includes:
-#include <cmath>?
+#include <cmath>
 
 // Includes from nestkernel:
 #include "common_synapse_properties.h"
@@ -280,8 +280,6 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
   double dendritic_delay = get_delay();
 
   //bool reach_max_activity = target->get_reach_max_activity();
-  double z = target->get_dendritic_firing_rate();
-  double s = target->get_somatic_firing_rate();
 
   // get spike history in relevant range (t1, t2] from post-synaptic neuron
   std::deque< histentry >::iterator start;
@@ -305,8 +303,8 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
   while ( start != finish )
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
-    z = start->dAP_trace_ ; 
-    s = start->spike_trace_;
+    double z = start->dAP_trace_ ; 
+    double s = start->spike_trace_;
     ++start;
     // get_history() should make sure that
     // start->t_ > t_lastspike - dendritic_delay, i.e. minus_dt < 0
@@ -315,7 +313,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
     
         // Hebbian learning 
         weight_ = facilitate_exp_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
-       
+
         // homeostasis control based on dAP firing rate
         weight_ += lambda_h_ * (zt_ - z) * Wmax_;
  
@@ -326,6 +324,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
         // }
 	// homeostatis control based on somatic firing rate
 	weight_ += lambda_s_ * (st_ - s) * std::abs(st_ - s) * Wmax_;
+        // weight_ += lambda_s_ * (st_ - s) * Wmax_;
     }
 
   }
