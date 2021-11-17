@@ -323,7 +323,7 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
         //    s_post = st_;
         // }
 	// homeostatis control based on somatic firing rate
-	weight_ += lambda_s_ * (st_ - s) * std::abs(st_ - s) * Wmax_;
+	weight_ += lambda_s_ * (st_ - s) * Wmax_;
         // weight_ += lambda_s_ * (st_ - s) * Wmax_;
     }
 
