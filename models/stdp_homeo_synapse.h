@@ -1,5 +1,5 @@
 /*
- *  stdp_synapse.h
+ *  stdp_homeo_synapse.h
  *
  *  This file is part of NEST.
  *
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef STDP_SYNAPSE_H
-#define STDP_SYNAPSE_H
+#ifndef STDP_HOMEO_SYNAPSE_H
+#define STDP_HOMEO_SYNAPSE_H
 
 // C++ includes:
 #include <cmath>
@@ -39,33 +39,37 @@
 namespace nest
 {
 
-/* BeginUserDocs: synapse, spike-timing-dependent plasticity
+/** @BeginDocumentation
+Name: stdp_homeo_synapse - Synapse type for spike-timing dependent
+plasticity with homeostasis control.
 
 Short description
 +++++++++++++++++
 
-Synapse type for spike-timing dependent plasticity
+Synapse type for spike-timing dependent plasticity and homeostasis control
 
 Description
 +++++++++++
 
-stdp_synapse is a connector to create synapses with spike time
-dependent plasticity (as defined in [1]_). Here the weight dependence
-exponent can be set separately for potentiation and depression.
+stdp_homeo_synapse is a connector to create synapses with spike time
+dependent plasticity and homeostasis controlled by the rate of dendritic
+action potentials (dAPs) and firing rate of the postsynaptic neuron. 
+A similar model (without firing rate homeostasis) is described in [1]. 
 
+=======
 Parameters
 ++++++++++
 
-========= =======  ======================================================
- tau_plus  ms      Time constant of STDP window, potentiation
-                   (tau_minus defined in postsynaptic neuron)
- lambda    real    Step size
- alpha     real    Asymmetry parameter (scales depressing increments as
-                   alpha*lambda)
- mu_plus   real    Weight dependence exponent, potentiation
- mu_minus  real    Weight dependence exponent, depression
- Wmax      real    Maximum allowed weight
-========= =======  ======================================================
+=========     =======  ======================================================
+ tau_plus     ms       Time constant of STDP window, potentiation
+                       (tau_minus defined in postsynaptic neuron)
+ lambda_plus  real     Potentiation rate
+ lambda_minus real     Depression rate
+ lambda_h     real     Homeostasis rate for dAP rate homeostasis
+ lambda_s     real     Homeostasis rate for firing rate homeostasis
+ mu_plus      real     Weight dependence exponent, potentiation
+ Wmax         real     Maximum allowed weight
+=========     =======  ======================================================
 
 Transmits
 +++++++++
@@ -75,20 +79,7 @@ SpikeEvent
 References
 ++++++++++
 
-.. [1] Guetig et al. (2003). Learning input correlations through nonlinear
-       temporally asymmetric hebbian plasticity. Journal of Neuroscience,
-       23:3697-3714 DOI: https://doi.org/10.1523/JNEUROSCI.23-09-03697.2003
-.. [2] Rubin J, Lee D, Sompolinsky H (2001). Equilibrium
-       properties of temporally asymmetric Hebbian plasticity. Physical Review
-       Letters, 86:364-367. DOI: https://doi.org/10.1103/PhysRevLett.86.364
-.. [3] Song S, Miller KD, Abbott LF (2000). Competitive Hebbian learning
-       through spike-timing-dependent synaptic plasticity. Nature Neuroscience
-       3(9):919-926.
-       DOI: https://doi.org/10.1038/78829
-.. [4] van Rossum MCW, Bi G-Q, Turrigiano GG (2000). Stable Hebbian learning
-       from spike timing-dependent plasticity. Journal of Neuroscience,
-       20(23):8812-8821.
-       DOI: https://doi.org/10.1523/JNEUROSCI.20-23-08812.2000
+.. [1] Bouhadjar et al., (2021). Sequence learning, prediction, and replay in networks of spiking neurons.
 
 See also
 ++++++++
@@ -101,7 +92,7 @@ EndUserDocs */
 // target index addressing) derived from generic connection template
 
 template < typename targetidentifierT >
-class stdp_synapse : public Connection< targetidentifierT >
+class stdp_homeo_synapse : public Connection< targetidentifierT >
 {
 
 public:
@@ -112,14 +103,14 @@ public:
    * Default Constructor.
    * Sets default values for all parameters. Needed by GenericConnectorModel.
    */
-  stdp_synapse();
+  stdp_homeo_synapse();
 
 
   /**
    * Copy constructor.
    * Needs to be defined properly in order for GenericConnector to work.
    */
-  stdp_synapse( const stdp_synapse& ) = default;
+  stdp_homeo_synapse( const stdp_homeo_synapse& ) = default;
 
   // Explicitly declare all methods inherited from the dependent base
   // ConnectionBase. This avoids explicit name prefixes in all places these
@@ -162,13 +153,17 @@ public:
   };
 
   void
-  check_connection( Node& s, Node& t, rport receptor_type, const CommonPropertiesType& )
+  check_connection( Node& s,
+    Node& t,
+    rport receptor_type,
+    const CommonPropertiesType& )
   {
     ConnTestDummyNode dummy_target;
 
     ConnectionBase::check_connection_( dummy_target, s, t, receptor_type );
 
     t.register_stdp_connection( t_lastspike_ - get_delay(), get_delay() );
+  
   }
 
   void
@@ -181,26 +176,48 @@ private:
   double
   facilitate_( double w, double kplus )
   {
-    double norm_w = ( w / Wmax_ ) + ( lambda_ * std::pow( 1.0 - ( w / Wmax_ ), mu_plus_ ) * kplus );
+    double norm_w = ( w / Wmax_ ) + ( lambda_plus_ * std::pow( 1.0 - ( w / Wmax_ ), mu_plus_ ) * kplus);
     return norm_w < 1.0 ? norm_w * Wmax_ : Wmax_;
   }
 
   double
-  depress_( double w, double kminus )
+  depress_( double w )
   {
-    double norm_w = ( w / Wmax_ ) - ( alpha_ * lambda_ * std::pow( w / Wmax_, mu_minus_ ) * kminus );
-    return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
+    //printf("# Depress #");
+    w = w - lambda_minus_ * Wmax_;
+    return w > Wmin_ ? w : Wmin_;
+  }
+
+  double
+  homeostasis_control_dAP( double weight, double z )
+  {
+    weight = weight + lambda_h_ * (zt_ - z) * Wmax_;
+    return weight < Wmin_ ? Wmin_ : weight > Wmax_ ? Wmax_ : weight;
+  }
+
+  double
+  homeostasis_control_soma( double weight, double s )
+  {
+    weight = weight + lambda_s_ * (st_ - s) * Wmax_;
+    return weight < Wmin_ ? Wmin_ : weight > Wmax_ ? Wmax_ : weight;
   }
 
   // data members of each connection
   double weight_;
   double tau_plus_;
-  double lambda_;
-  double alpha_;
+  double lambda_plus_;
+  double lambda_minus_;
   double mu_plus_;
   double mu_minus_;
   double Wmax_;
+  double Wmin_;
   double Kplus_;
+  double zt_;
+  double st_;
+  double lambda_h_;
+  double lambda_s_;
+  double dt_min_;
+  double dt_max_;
 
   double t_lastspike_;
 };
@@ -214,17 +231,19 @@ private:
  */
 template < typename targetidentifierT >
 inline void
-stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapseProperties& )
+stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapseProperties& )
 {
   // synapse STDP depressing/facilitation dynamics
-  const double t_spike = e.get_stamp().get_ms();
+  double t_spike = e.get_stamp().get_ms();
 
   // use accessor functions (inherited from Connection< >) to obtain delay and
   // target
   Node* target = get_target( t );
   double dendritic_delay = get_delay();
 
-  // get spike history in relevant range (t1, t2] from postsynaptic neuron
+  //bool reach_max_activity = target->get_reach_max_activity();
+
+  // get spike history in relevant range (t1, t2] from post-synaptic neuron
   std::deque< histentry >::iterator start;
   std::deque< histentry >::iterator finish;
 
@@ -236,23 +255,46 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
   // history[0, ..., t_last_spike - dendritic_delay] have been
   // incremented by ArchivingNode::register_stdp_connection(). See bug #218 for
   // details.
-  target->get_history( t_lastspike_ - dendritic_delay, t_spike - dendritic_delay, &start, &finish );
-  // facilitation due to postsynaptic spikes since last pre-synaptic spike
+  target->get_history( t_lastspike_ - dendritic_delay,
+    t_spike - dendritic_delay,
+    &start,
+    &finish );
+  // facilitation due to post-synaptic spikes since last pre-synaptic spike
   double minus_dt;
+
+  double s_post;
   while ( start != finish )
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
+
+    // get dendritic and somatic firing rates
+    double z = start->dAP_trace_ ; 
+    double s = start->spike_trace_;
+
     ++start;
+
     // get_history() should make sure that
     // start->t_ > t_lastspike - dendritic_delay, i.e. minus_dt < 0
     assert( minus_dt < -1.0 * kernel().connection_manager.get_stdp_eps() );
-    weight_ = facilitate_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ) );
+    if ( minus_dt > dt_max_ and  minus_dt < dt_min_ ){
+    
+        // Hebbian learning 
+        weight_ = facilitate_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
+
+        // homeostasis control based on dAP firing rate
+        weight_ = homeostasis_control_dAP( weight_, z );
+
+        // homeostasis control based on somatic firing rate
+        weight_ = homeostasis_control_soma( weight_, s );
+ 
+    }
+
   }
 
-  const double _K_value = target->get_K_value( t_spike - dendritic_delay );
-  weight_ = depress_( weight_, _K_value );
+  // depress 
+  weight_ = depress_( weight_ ); 
 
-  e.set_receiver( *target );
+  e.set_receiver( *target ); 
   e.set_weight( weight_ );
   // use accessor functions (inherited from Connection< >) to obtain delay in
   // steps and rport
@@ -267,15 +309,22 @@ stdp_synapse< targetidentifierT >::send( Event& e, thread t, const CommonSynapse
 
 
 template < typename targetidentifierT >
-stdp_synapse< targetidentifierT >::stdp_synapse()
+stdp_homeo_synapse< targetidentifierT >::stdp_homeo_synapse()
   : ConnectionBase()
   , weight_( 1.0 )
   , tau_plus_( 20.0 )
-  , lambda_( 0.01 )
-  , alpha_( 1.0 )
-  , mu_plus_( 1.0 )
+  , lambda_plus_( 0.01 )
+  , lambda_minus_( 1.0 )
+  , zt_( 1.0 )
+  , st_( 10.0 )
+  , lambda_h_( 0.01 )
+  , lambda_s_( 0.01 )
+  , mu_plus_( 0.005 )
   , mu_minus_( 1.0 )
   , Wmax_( 100.0 )
+  , Wmin_( 0.0 )
+  , dt_min_( 0.0 )
+  , dt_max_( -50.0 )
   , Kplus_( 0.0 )
   , t_lastspike_( 0.0 )
 {
@@ -283,34 +332,49 @@ stdp_synapse< targetidentifierT >::stdp_synapse()
 
 template < typename targetidentifierT >
 void
-stdp_synapse< targetidentifierT >::get_status( DictionaryDatum& d ) const
+stdp_homeo_synapse< targetidentifierT >::get_status( DictionaryDatum& d ) const
 {
   ConnectionBase::get_status( d );
   def< double >( d, names::weight, weight_ );
   def< double >( d, names::tau_plus, tau_plus_ );
-  def< double >( d, names::lambda, lambda_ );
-  def< double >( d, names::alpha, alpha_ );
+  def< double >( d, names::lambda_plus, lambda_plus_ );
+  def< double >( d, names::lambda_minus, lambda_minus_ );
+  def< double >( d, names::zt, zt_ );
+  def< double >( d, names::st, st_ );
+  def< double >( d, names::lambda_h, lambda_h_ );
+  def< double >( d, names::lambda_s, lambda_s_ );
   def< double >( d, names::mu_plus, mu_plus_ );
   def< double >( d, names::mu_minus, mu_minus_ );
   def< double >( d, names::Wmax, Wmax_ );
+  def< double >( d, names::Wmin, Wmin_ );
+  def< double >( d, names::dt_min, dt_min_ );
+  def< double >( d, names::dt_max, dt_max_ );
   def< long >( d, names::size_of, sizeof( *this ) );
 }
 
 template < typename targetidentifierT >
 void
-stdp_synapse< targetidentifierT >::set_status( const DictionaryDatum& d, ConnectorModel& cm )
+stdp_homeo_synapse< targetidentifierT >::set_status( const DictionaryDatum& d, ConnectorModel& cm )
 {
   ConnectionBase::set_status( d, cm );
   updateValue< double >( d, names::weight, weight_ );
   updateValue< double >( d, names::tau_plus, tau_plus_ );
-  updateValue< double >( d, names::lambda, lambda_ );
-  updateValue< double >( d, names::alpha, alpha_ );
+  updateValue< double >( d, names::lambda_plus, lambda_plus_ );
+  updateValue< double >( d, names::lambda_minus, lambda_minus_ );
+  updateValue< double >( d, names::zt, zt_ );
+  updateValue< double >( d, names::st, st_ );
+  updateValue< double >( d, names::lambda_h, lambda_h_ );
+  updateValue< double >( d, names::lambda_s, lambda_s_ );
   updateValue< double >( d, names::mu_plus, mu_plus_ );
   updateValue< double >( d, names::mu_minus, mu_minus_ );
   updateValue< double >( d, names::Wmax, Wmax_ );
+  updateValue< double >( d, names::Wmin, Wmin_ );
+  updateValue< double >( d, names::dt_min, dt_min_ );
+  updateValue< double >( d, names::dt_max, dt_max_ );
 
   // check if weight_ and Wmax_ has the same sign
-  if ( not( ( ( weight_ >= 0 ) - ( weight_ < 0 ) ) == ( ( Wmax_ >= 0 ) - ( Wmax_ < 0 ) ) ) )
+  if ( not( ( ( weight_ >= 0 ) - ( weight_ < 0 ) )
+         == ( ( Wmax_ >= 0 ) - ( Wmax_ < 0 ) ) ) )
   {
     throw BadProperty( "Weight and Wmax must have same sign." );
   }
@@ -318,4 +382,4 @@ stdp_synapse< targetidentifierT >::set_status( const DictionaryDatum& d, Connect
 
 } // of namespace nest
 
-#endif // of #ifndef STDP_SYNAPSE_H
+#endif // of #ifndef stdp_homeo_synapse_H

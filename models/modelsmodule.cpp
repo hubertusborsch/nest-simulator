@@ -131,6 +131,7 @@
 #include "rate_connection_instantaneous.h"
 #include "static_synapse.h"
 #include "static_synapse_hom_w.h"
+#include "stdp_homeo_synapse.h"
 #include "stdp_synapse.h"
 #include "stdsp_synapse.h"
 #include "stdp_synapse_facetshw_hom.h"
@@ -318,6 +319,7 @@ ModelsModule::init( SLIInterpreter* )
   register_connection_model< static_synapse >( "static_synapse" );
   register_connection_model< static_synapse_hom_w >( "static_synapse_hom_w" );
   register_connection_model< stdsp_synapse >( "stdsp_synapse" );
+  register_connection_model< stdp_homeo_synapse >( "stdp_homeo_synapse" );
   register_connection_model< stdp_synapse >( "stdp_synapse" );
   register_connection_model< stdp_synapse_hom >( "stdp_synapse_hom" );
   register_connection_model< stdp_dopamine_synapse >( "stdp_dopamine_synapse" );

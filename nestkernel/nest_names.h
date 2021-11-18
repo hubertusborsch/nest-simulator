@@ -160,6 +160,8 @@ extern const Name distal_inh;
 extern const Name drift_factor;
 extern const Name driver_readout_time;
 extern const Name dt;
+extern const Name dt_max;
+extern const Name dt_min;
 
 extern const Name E_K;
 extern const Name E_L;

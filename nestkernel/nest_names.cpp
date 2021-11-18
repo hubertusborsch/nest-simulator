@@ -136,6 +136,8 @@ const Name distal_inh( "distal_inh" );
 const Name drift_factor( "drift_factor" );
 const Name driver_readout_time( "driver_readout_time" );
 const Name dt( "dt" );
+const Name dt_max( "dt_max" );
+const Name dt_min( "dt_min" );
 
 const Name E_K( "E_K" );
 const Name E_L( "E_L" );
