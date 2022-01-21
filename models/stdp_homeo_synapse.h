@@ -25,6 +25,7 @@
 
 // C++ includes:
 #include <cmath>
+// #include <iostream>
 
 // Includes from nestkernel:
 #include "common_synapse_properties.h"
@@ -270,7 +271,7 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
     // get dendritic and somatic firing rates
     double z = start->dAP_trace_ ; 
     double s = start->spike_trace_;
-
+    // std::cout << "this is z" << z << "\n";
     ++start;
 
     // get_history() should make sure that

@@ -117,6 +117,7 @@ set( models_sources
     static_synapse.h
     static_synapse_hom_w.h
     stdp_dopamine_synapse.h stdp_dopamine_synapse.cpp
+    stdp_homeo_synapse.h
     stdp_nn_pre_centered_synapse.h
     stdp_nn_restr_synapse.h
     stdp_nn_symm_synapse.h
