@@ -190,12 +190,9 @@ private:
   // }
 
   double
-  depress_( double w, double kpre )
+  depress_( double w, double kminus )
    {
-     double beta_ = std::tanh( mu_minus_ * kpre );
-     w = w - lambda_minus_ * Wmax_ * ( 1 - 0.9 * beta_ );
-     std::cout << "tanh" << beta_ << "\n";
-
+     w = w - lambda_minus_ * Wmax_ * kminus;
      return w > Wmin_ ? w : Wmin_;
    }
 
@@ -304,8 +301,9 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
 
   // depress 
   // weight_ = depress_( weight_ ); 
-  Kplus_ = Kplus_ * std::exp( ( t_lastspike_ - t_spike ) / tau_plus_ );
-  weight_ = depress_( weight_, Kplus_ );
+  const double _K_value = target->get_K_value( t_spike - dendritic_delay );
+  double new_K = 1.0 - _K_value * mu_minus_ ;
+  weight_ = depress_( weight_, new_K );
 
   e.set_receiver( *target ); 
   e.set_weight( weight_ );
@@ -315,7 +313,7 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   e.set_rport( get_rport() );
   e();
 
-  Kplus_ = Kplus_ + 1.0;
+  Kplus_ = Kplus_ * std::exp( ( t_lastspike_ - t_spike ) / tau_plus_ ) + 1.0;
 
   t_lastspike_ = t_spike;
 }
