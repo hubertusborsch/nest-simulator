@@ -190,14 +190,11 @@ private:
   // }
 
   double
-  depress_( double w, double kpre )
-   {
-     double beta_ = std::tanh( mu_minus_ * kpre );
-     w = w - lambda_minus_ * Wmax_ * ( 1 - 0.9 * beta_ );
-     std::cout << "tanh" << beta_ << "\n";
-
-     return w > Wmin_ ? w : Wmin_;
-   }
+  depress_( double w )
+  {
+    double norm_w = ( w / Wmax_ ) - ( lambda_minus_ * std::pow( w / Wmax_, mu_minus_ ) );
+    return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
+  }
 
   double
   homeostasis_control_dAP( double weight, double z )
@@ -303,9 +300,7 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   }
 
   // depress 
-  // weight_ = depress_( weight_ ); 
-  Kplus_ = Kplus_ * std::exp( ( t_lastspike_ - t_spike ) / tau_plus_ );
-  weight_ = depress_( weight_, Kplus_ );
+  weight_ = depress_( weight_ ); 
 
   e.set_receiver( *target ); 
   e.set_weight( weight_ );
@@ -315,7 +310,7 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   e.set_rport( get_rport() );
   e();
 
-  Kplus_ = Kplus_ + 1.0;
+  Kplus_ = Kplus_ * std::exp( ( t_lastspike_ - t_spike ) / tau_plus_ ) + 1.0;
 
   t_lastspike_ = t_spike;
 }
