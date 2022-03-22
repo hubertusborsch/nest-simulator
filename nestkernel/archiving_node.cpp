@@ -92,7 +92,7 @@ nest::ArchivingNode::get_K_value( double t )
   // case when the neuron has not yet spiked
   if ( history_.empty() )
   {
-    trace_ = 0.;
+    trace_ = 7.;
     return trace_;
   }
 
@@ -103,7 +103,7 @@ nest::ArchivingNode::get_K_value( double t )
   {
     if ( t - history_[ i ].t_ > kernel().connection_manager.get_stdp_eps() )
     {
-      trace_ = ( history_[ i ].Kminus_ * std::exp( ( history_[ i ].t_ - t ) * tau_minus_inv_ ) );
+      trace_ =  ( history_[ i ].Kminus_ * ( - 8 * std::exp( ( history_[ i ].t_ - t ) * tau_minus_inv_ ) + 7 ) );
       return trace_;
     }
     --i;
@@ -111,7 +111,7 @@ nest::ArchivingNode::get_K_value( double t )
 
   // this case occurs when the trace was requested at a time precisely at or
   // before the first spike in the history
-  trace_ = 0.;
+  trace_ = 7.;
   return trace_;
 }
 

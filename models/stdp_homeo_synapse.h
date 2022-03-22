@@ -190,9 +190,9 @@ private:
   // }
 
   double
-  depress_( double w )
+  depress_( double w, double kminus )
   {
-    double norm_w = ( w / Wmax_ ) - ( lambda_minus_ * std::pow( w / Wmax_, mu_minus_ ) );
+    double norm_w = ( w / Wmax_ ) - ( lambda_minus_ * std::pow( w / Wmax_, mu_minus_ ) * kminus );
     return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
   }
 
@@ -300,7 +300,8 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   }
 
   // depress 
-  weight_ = depress_( weight_ ); 
+  const double _K_value = target->get_K_value( t_spike - dendritic_delay );
+  weight_ = depress_( weight_, _K_value ); 
 
   e.set_receiver( *target ); 
   e.set_weight( weight_ );
