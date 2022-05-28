@@ -270,7 +270,6 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   // facilitation due to post-synaptic spikes since last pre-synaptic spike
   double minus_dt;
 
-  double s_post;
   while ( start != finish )
   {
     minus_dt = t_lastspike_ - ( start->t_ + dendritic_delay );
@@ -287,7 +286,8 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
     if ( minus_dt > dt_max_ and  minus_dt < dt_min_ ){
     
         // Hebbian learning 
-        weight_ = facilitate_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
+        // weight_ = facilitate_( weight_, Kplus_ * std::exp( minus_dt / tau_plus_ ));
+        weight_ = facilitate_( weight_, 1.0 ); 
 
         // homeostasis control based on dAP firing rate
         weight_ = homeostasis_control_dAP( weight_, z );
@@ -302,6 +302,7 @@ stdp_homeo_synapse< targetidentifierT >::send( Event& e, thread t, const CommonS
   // depress 
   const double _K_value = target->get_K_value( t_spike - dendritic_delay );
   weight_ = depress_( weight_, _K_value ); 
+  // weight_ = depress_( weight_, 1 ); 
 
   e.set_receiver( *target ); 
   e.set_weight( weight_ );
@@ -335,7 +336,7 @@ stdp_homeo_synapse< targetidentifierT >::stdp_homeo_synapse()
   , dt_min_( 0.0 )
   , dt_max_( -50.0 )
   , Kplus_( 0.0 )
-  , t_lastspike_( 0.0 )
+  , t_lastspike_( -100.0 )
 {
 }
 

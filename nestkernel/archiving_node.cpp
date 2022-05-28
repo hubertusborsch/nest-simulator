@@ -92,7 +92,7 @@ nest::ArchivingNode::get_K_value( double t )
   // case when the neuron has not yet spiked
   if ( history_.empty() )
   {
-    trace_ = 7.;
+    trace_ = 12.;
     return trace_;
   }
 
@@ -103,17 +103,51 @@ nest::ArchivingNode::get_K_value( double t )
   {
     if ( t - history_[ i ].t_ > kernel().connection_manager.get_stdp_eps() )
     {
-      trace_ =  ( history_[ i ].Kminus_ * ( - 8 * std::exp( ( history_[ i ].t_ - t ) * tau_minus_inv_ ) + 7 ) );
-      return trace_;
+      if ( t - history_[ i ].t_ < 50. ) 
+      {
+        // trace_ =  ( history_[ i ].Kminus_ * ( - 8 * std::exp( ( history_[ i ].t_ - t ) * tau_minus_inv_ ) + 7 ) );
+        trace_ = -1.;
+        return trace_;
+      }
+      trace_ = 12.;
     }
     --i;
   }
 
   // this case occurs when the trace was requested at a time precisely at or
   // before the first spike in the history
-  trace_ = 7.;
+  trace_ = 12.;
   return trace_;
 }
+
+// double
+// nest::ArchivingNode::get_K_value( double t )
+// {
+//   // case when the neuron has not yet spiked
+//   if ( history_.empty() )
+//   {
+//     trace_ = 1.;
+//     return trace_;
+//   }
+// 
+//   // search for the latest post spike in the history buffer that came strictly
+//   // before `t`
+//   int i = history_.size() - 1;
+//   while ( i >= 0 )
+//   {
+//     if ( t - history_[ i ].t_ > kernel().connection_manager.get_stdp_eps() )
+//     {
+//       trace_ =  ( history_[ i ].Kminus_ * ( - 1 * std::exp( ( history_[ i ].t_ - t ) * tau_minus_inv_ ) + 1 ) );
+//       return trace_;
+//     }
+//     --i;
+//   }
+// 
+//   // this case occurs when the trace was requested at a time precisely at or
+//   // before the first spike in the history
+//   trace_ = 1.;
+//   return trace_;
+// }
 
 void
 nest::ArchivingNode::get_K_values( double t,

@@ -1,6 +1,6 @@
 #!/bin/bash/
 . /home/hubertus/miniconda3/etc/profile.d/conda.sh
-conda activate spiking-htm
+conda activate slow-sequences
 #git_hash=$(git rev-parse --short=7 HEAD)
 git_branch=$(git symbolic-ref --short HEAD)
 mkdir -p $PWD/build/$git_branch
